@@ -10,7 +10,7 @@ executors:
       image: ubuntu-2004:202201-02
 
 parameters:
-  # To enable/disabled the check_latest_version workflow execution which will be triggered by this scheduled pipeline: https://app.circleci.com/settings/project/github/kurtosis-tech/autogpt-package/triggers
+  # To enable/disabled the check_latest_version workflow execution which will be triggered by this scheduled pipeline: https://app.circleci.com/settings/project/github/khulnasoft-lab/startgpt-package/triggers
   should-enable-nightly-plugin-check:
     type: boolean
     default: false
@@ -36,11 +36,11 @@ jobs:
       - run: kurtosis engine restart
 
       - run: |
-          kurtosis run .  '{"OPENAI_API_KEY": "test", "MEMORY_BACKEND": "local", "ALLOWLISTED_PLUGINS": "AutoGPTTwitter", "__skip_env_vars_validation": "True", "__skip_env_vars_default_values_set": "True"}'
+          kurtosis run .  '{"OPENAI_API_KEY": "test", "MEMORY_BACKEND": "local", "ALLOWLISTED_PLUGINS": "StartGPTTwitter", "__skip_env_vars_validation": "True", "__skip_env_vars_default_values_set": "True"}'
           kurtosis run .  '{"OPENAI_API_KEY": "test"}'
 
 
-  # this emualtes https://github.com/Significant-Gravitas/Auto-GPT-Plugins/blob/master/.github/workflows/test-plugin-installation.yml
+  # this emualtes https://github.com/KhulnaSoft/Start-GPT-Plugins/blob/master/.github/workflows/test-plugin-installation.yml
   test_plugins_ci_run:
     executor: ubuntu_vm
     resource_class: xlarge
@@ -58,10 +58,10 @@ jobs:
       - run: kurtosis engine restart
 
       - run: |
-          kurtosis run . '{"OPENAI_API_KEY": "test", "ALLOWLISTED_PLUGINS": "AutoGPTTwitter", "__plugin_branch_to_use": "master", "__plugin_repo_to_use": "significant-gravitas/Auto-GPT-Plugins"}'
+          kurtosis run . '{"OPENAI_API_KEY": "test", "ALLOWLISTED_PLUGINS": "StartGPTTwitter", "__plugin_branch_to_use": "master", "__plugin_repo_to_use": "significant-gravitas/Start-GPT-Plugins"}'
    
       - run: |
-          kurtosis run . '{"OPENAI_API_KEY": "test", "ALLOWLISTED_PLUGINS": ["AutoGPTTwitter"], "__plugin_branch_to_use": "master", "__plugin_repo_to_use": "significant-gravitas/Auto-GPT-Plugins"}'
+          kurtosis run . '{"OPENAI_API_KEY": "test", "ALLOWLISTED_PLUGINS": ["StartGPTTwitter"], "__plugin_branch_to_use": "master", "__plugin_repo_to_use": "significant-gravitas/Start-GPT-Plugins"}'
 
   run_package_with_plugins_nightly:
     executor: ubuntu_vm
@@ -80,7 +80,7 @@ jobs:
       - run: kurtosis engine restart
 
       - run: |
-            kurtosis run . '{"OPENAI_API_KEY": "test", "ALLOWLISTED_PLUGINS": "AutoGPTTwitter", "__plugin_branch_to_use": "master", "__plugin_repo_to_use": "significant-gravitas/Auto-GPT-Plugins"}'
+            kurtosis run . '{"OPENAI_API_KEY": "test", "ALLOWLISTED_PLUGINS": "StartGPTTwitter", "__plugin_branch_to_use": "master", "__plugin_repo_to_use": "significant-gravitas/Start-GPT-Plugins"}'
 
       # this step will be always run even if the previous step fails, some steps are configured this way. More info here: https://circleci.com/docs/configuration-reference#steps
       - slack/notify:

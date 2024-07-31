@@ -2,11 +2,11 @@ redis_module = import_module("github.com/kurtosis-tech/redis-package/main.star")
 plugins = import_module("./plugins.star")
 common = import_module("./src/common.star")
 
-AUTOGPT_IMAGE = "significantgravitas/auto-gpt:v0.4.2"
-AUTOGPT_IMAGE_ARG = "AUTOGPT_IMAGE"
+STARTGPT_IMAGE = "significantgravitas/auto-gpt:v0.4.2"
+STARTGPT_IMAGE_ARG = "STARTGPT_IMAGE"
 REDIS_IMAGE = "redis/redis-stack-server:latest"
 
-AUTOGPT_SERVICE_NAME = "autogpt"
+STARTGPT_SERVICE_NAME = "startgpt"
 
 OPENAI_API_KEY_ARG = "OPENAI_API_KEY"
 
@@ -21,7 +21,7 @@ ARGS_TO_SKIP_FOR_ENV_VARS = ["__plugin_branch_to_use", "__plugin_repo_to_use", S
 DEFAULT_PLUGINS_DIRNAME = "plugins"
 # Chrome seems to be having some issues starting up in Docker
 # We set USE_WEB_BROWSER=DEFAULT_WEB_BROWSER unless the user specifies something else
-# TODO fix this after https://github.com/Significant-Gravitas/Auto-GPT/issues/3779 is fixed
+# TODO fix this after https://github.com/KhulnaSoft/Start-GPT/issues/3779 is fixed
 DEFAULT_WEB_BROWSER = "firefox"
 
 ALLOW_LISTED_PLUGINS_ENV_VAR_KEY = 'ALLOWLISTED_PLUGINS'
@@ -49,7 +49,7 @@ def run(plan, args):
         plan.print("Downloading the model; this will take a while")
         model_url = args.get(MODEL_ARG, DEFAULT_MODEL_URL)
         model_name = model_url.split("/")[-1]
-        # AutoGPT checks for this
+        # StartGPT checks for this
         model_name = "gpt-3.5-turbo"
         wget_str = " ".join(["wget", model_url, "-O", "models/{0}".format(model_name)])
         plan.exec(
@@ -113,7 +113,7 @@ def run(plan, args):
         # validate plugins names
         plugins.validatePluginNames(plugins_names)
         
-        # this means if its running in old CI configurations (AutoGPT CI config before adding validations) we need to know this for not creating a breaking change
+        # this means if its running in old CI configurations (StartGPT CI config before adding validations) we need to know this for not creating a breaking change
         isRunningInOldCIConfig = plugin_branch_to_use != None and plugin_repo_to_use != None 
 
         # validate plugins 
@@ -155,12 +155,12 @@ def run(plan, args):
 
     plan.print("Starting AutoGpt with environment variables set to\n{0}".format(env_vars))
 
-    autogpt_image = args.get(AUTOGPT_IMAGE_ARG, AUTOGPT_IMAGE)
+    startgpt_image = args.get(STARTGPT_IMAGE_ARG, STARTGPT_IMAGE)
 
     plan.add_service(
-        name = AUTOGPT_SERVICE_NAME,
+        name = STARTGPT_SERVICE_NAME,
         config = ServiceConfig(
-            image = autogpt_image,
+            image = startgpt_image,
             entrypoint = ["sleep", "9999999"],
             env_vars = env_vars,
         )
@@ -168,7 +168,7 @@ def run(plan, args):
 
     init_env_file_command = "echo '{0}' > /app/.env".format("\n".join(["{0}={1}".format(k, v) for (k, v) in env_vars.items()]))
     plan.exec(
-        service_name = "autogpt",
+        service_name = "startgpt",
         recipe = ExecRecipe(
             command = ["/bin/sh", "-c", init_env_file_command]
         )
@@ -176,7 +176,7 @@ def run(plan, args):
 
     if ALLOW_LISTED_PLUGINS_ENV_VAR_KEY in env_vars:
         plan.exec(
-            service_name = AUTOGPT_SERVICE_NAME,
+            service_name = STARTGPT_SERVICE_NAME,
             recipe = ExecRecipe(
                 command = ["mkdir", "-p", "/app/plugins"]
             )
@@ -193,7 +193,7 @@ def run(plan, args):
                 plugins_to_download.append(plugin)
                 plugins_already_in_download_list.append(plugin_name)
             else:
-                fail("Invalid plugin name {0}. The supported plugins are: {1}. You can add support for a new plugin by creating an issue or PR at {2}".format(plugin_name, ", ".join(plugins.plugins_map.keys()), common.KURTOSIS_AUTOGPT_PACKAGE_URL))
+                fail("Invalid plugin name {0}. The supported plugins are: {1}. You can add support for a new plugin by creating an issue or PR at {2}".format(plugin_name, ", ".join(plugins.plugins_map.keys()), common.KURTOSIS_STARTGPT_PACKAGE_URL))
 
         if plugins_to_download:
             download_plugins(plan, plugins_dir, plugins_to_download, plugin_branch_to_use, plugin_repo_to_use)
@@ -206,7 +206,7 @@ def download_plugins(plan, plugins_dir, plugins_to_download, plugin_branch_to_us
         plugin_filename = plugins.get_filename(plugin)
         download_and_run_command = "wget -O ./{0}/{1} {2}".format(plugins_dir, plugin_filename, url)
         plan.exec(
-            service_name = AUTOGPT_SERVICE_NAME,
+            service_name = STARTGPT_SERVICE_NAME,
             recipe = ExecRecipe(
                 command = ["/bin/sh", "-c", download_and_run_command],
             )
@@ -214,7 +214,7 @@ def download_plugins(plan, plugins_dir, plugins_to_download, plugin_branch_to_us
 
 def install_plugins(plan):
     plan.exec(
-        service_name = AUTOGPT_SERVICE_NAME,
+        service_name = STARTGPT_SERVICE_NAME,
         recipe = ExecRecipe(
             command = ["/bin/sh", "-c", "python scripts/install_plugin_deps.py"],
         )
